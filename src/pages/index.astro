@@ -1,0 +1,119 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import PostCard from '../components/PostCard.astro';
+import { SITE, CATEGORIES, url, formatDate } from '../data/site';
+
+const posts = (await getCollection('posts', ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
+);
+const featured = posts.find((p) => p.data.featured) ?? posts[0];
+const latest = posts.slice(0, 6);
+const countBy = (id: string) => posts.filter((p) => p.data.category === id).length;
+const lastUpdate = posts[0] ? formatDate(posts[0].data.date) : '-';
+---
+
+<Base active="home">
+  <section class="hero">
+    <div>
+      <span class="label">// {SITE.tagline}</span>
+      <h1>기록 뒤에 숨은<br /><em>야구</em>를 읽습니다</h1>
+      <p>{SITE.description}</p>
+    </div>
+    <div class="tiles hero-tiles">
+      <div class="panel tile"><span class="label">Posts</span><div class="value">{posts.length}</div><div class="note">발행된 글</div></div>
+      <div class="panel tile"><span class="label">Categories</span><div class="value">{Object.keys(CATEGORIES).length}</div><div class="note">다루는 주제</div></div>
+      <div class="panel tile"><span class="label">Last Update</span><div class="value small">{lastUpdate}</div><div class="note">최근 발행일</div></div>
+    </div>
+  </section>
+
+  {
+    featured && (
+      <section class="section">
+        <div class="section-head"><h2>주목할 글</h2></div>
+        <a class="panel featured" href={url(`/posts/${featured.id}/`)}>
+          <div class="featured-text">
+            <span class="chip">FEATURED · {CATEGORIES[featured.data.category].name}</span>
+            <h3>{featured.data.title}</h3>
+            <p>{featured.data.description}</p>
+            <span class="label">{formatDate(featured.data.date)} · 읽으러 가기 →</span>
+          </div>
+          {featured.data.highlights.length > 0 && (
+            <div class="featured-stats">
+              {featured.data.highlights.slice(0, 4).map((h) => (
+                <div class="fs">
+                  <span class="label">{h.label}</span>
+                  <b>{h.value}</b>
+                  {h.note && <small>{h.note}</small>}
+                </div>
+              ))}
+            </div>
+          )}
+        </a>
+      </section>
+    )
+  }
+
+  <section class="section">
+    <div class="section-head"><h2>카테고리</h2></div>
+    <div class="cat-grid">
+      {
+        Object.entries(CATEGORIES).map(([id, c]) => (
+          <a class="panel cat" href={url(`/category/${id}/`)}>
+            <div class="cat-top">
+              <span class="label">{c.code}</span>
+              <span class="cat-count">{countBy(id)}</span>
+            </div>
+            <h3>{c.name}</h3>
+            <p>{c.description}</p>
+          </a>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><h2>최신 글</h2></div>
+    {
+      latest.length > 0 ? (
+        <div class="grid">{latest.map((post) => <PostCard post={post} />)}</div>
+      ) : (
+        <div class="panel empty">새 글을 준비하고 있어요.</div>
+      )
+    }
+  </section>
+</Base>
+
+<style>
+  .hero { display: grid; grid-template-columns: 1.3fr 1fr; gap: 40px; align-items: end; padding: 64px 0 16px; }
+  .hero h1 { font-size: clamp(32px, 5vw, 52px); line-height: 1.2; margin: 12px 0; letter-spacing: -0.02em; }
+  .hero h1 em { font-style: normal; color: var(--accent); }
+  .hero p { color: var(--muted); margin: 0; max-width: 520px; }
+  .hero-tiles { grid-template-columns: repeat(3, 1fr); }
+  .value.small { font-size: 18px; padding-top: 8px; }
+
+  .featured { display: grid; grid-template-columns: 1.4fr 1fr; gap: 24px; padding: 28px; transition: border-color 0.15s; }
+  .featured:hover { border-color: var(--accent); }
+  .featured h3 { font-size: 26px; margin: 12px 0 8px; line-height: 1.35; }
+  .featured p { color: var(--muted); margin: 0 0 16px; }
+  .featured-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .fs { background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 4px; }
+  .fs b { font-family: var(--mono); font-size: 22px; color: var(--accent); }
+  .fs small { color: var(--muted); font-size: 12px; }
+
+  .cat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .cat { padding: 18px; transition: border-color 0.15s; }
+  .cat:hover { border-color: var(--accent); }
+  .cat-top { display: flex; justify-content: space-between; align-items: center; }
+  .cat-count { font-family: var(--mono); font-size: 20px; font-weight: 700; color: var(--accent); }
+  .cat h3 { margin: 10px 0 6px; font-size: 17px; }
+  .cat p { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+  @media (max-width: 900px) {
+    .hero, .featured { grid-template-columns: 1fr; }
+    .cat-grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 520px) {
+    .hero-tiles, .cat-grid { grid-template-columns: 1fr; }
+  }
+</style>

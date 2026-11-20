@@ -1,0 +1,21 @@
+{
+  "name": "baseball-blog",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "astro": "5.18.2",
+    "katex": "0.16.47",
+    "rehype-katex": "^7.0.1",
+    "remark-math": "^6.0.0"
+  },
+  "type": "module",
+  "private": true,
+  "overrides": {
+    "rollup": "npm:@rollup/wasm-node@^4",
+    "esbuild": "npm:esbuild-wasm@^0.25"
+  }
+}

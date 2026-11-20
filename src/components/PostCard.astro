@@ -1,0 +1,29 @@
+---
+import { CATEGORIES, url, formatDate } from '../data/site';
+
+const { post } = Astro.props;
+const cat = CATEGORIES[post.data.category as keyof typeof CATEGORIES];
+const mini = post.data.highlights.slice(0, 3);
+---
+
+<a class="panel card" href={url(`/posts/${post.id}/`)}>
+  <span class="chip">{cat.code} · {cat.name}</span>
+  <h3>{post.data.title}</h3>
+  <p>{post.data.description}</p>
+  {
+    mini.length > 0 && (
+      <div class="mini">
+        {mini.map((h: { label: string; value: string }) => (
+          <div>
+            <b>{h.value}</b>
+            <span>{h.label}</span>
+          </div>
+        ))}
+      </div>
+    )
+  }
+  <div class="meta">
+    <span class="label">{formatDate(post.data.date)}</span>
+    <span class="tag">{post.data.tags.slice(0, 3).map((t: string) => `#${t}`).join(' ')}</span>
+  </div>
+</a>
